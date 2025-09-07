@@ -1,0 +1,2087 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nini's Banana Boat Adventure</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Arial Rounded MT Bold', 'Arial', sans-serif;
+            background: linear-gradient(to bottom, #1E40AF, #3B82F6, #0EA5E9);
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+        #game-container {
+            position: relative;
+            width: 800px;
+            height: 650px;
+            margin: 20px auto;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 0 20px rgba(0, 247, 255, 0.5);
+        }
+        #game-canvas {
+            background: linear-gradient(to bottom, #1E3A8A, #3B82F6, #0EA5E9);
+            display: block;
+            width: 800px;
+            height: 650px;
+        }
+        #ui-container {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 10;
+        }
+        .score-display {
+            font-size: 24px;
+            font-weight: bold;
+            color: #ff0;
+            text-shadow: 0 0 10px #ff0, 0 0 20px #ff0;
+            margin-bottom: 8px;
+        }
+        .lives-container {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        .life-icon {
+            width: 16px;
+            height: 16px;
+            background: #FF9900;
+            border-radius: 50%;
+            margin-right: 6px;
+            position: relative;
+            border: 2px solid #FFCC66;
+        }
+        .life-icon::before {
+            content: '';
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: #000;
+            border-radius: 50%;
+            top: 3px;
+            left: 3px;
+        }
+        .level-indicator {
+            font-size: 20px;
+            color: #00ffcc;
+            text-shadow: 0 0 10px #00ffcc, 0 0 20px #00ffcc;
+            margin-bottom: 8px;
+        }
+        .screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: rgba(10, 20, 40, 0.9);
+            z-index: 20;
+        }
+        h1 {
+            font-size: 48px;
+            color: #ff9900;
+            text-shadow: 0 0 15px #ff9900, 0 0 30px #ff9900;
+            margin-bottom: 20px;
+        }
+        h2 {
+            font-size: 32px;
+            color: #00ffcc;
+            text-shadow: 0 0 10px #00ffcc, 0 0 20px #00ffcc;
+            margin-bottom: 30px;
+        }
+        p {
+            font-size: 18px;
+            max-width: 600px;
+            text-align: center;
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+        .instructions {
+            background: rgba(0, 0, 0, 0.5);
+            padding: 20px;
+            border-radius: 10px;
+            border: 2px solid #00ffcc;
+            box-shadow: 0 0 15px #00ffcc;
+            margin-bottom: 30px;
+        }
+        .btn {
+            background: linear-gradient(to bottom, #ff00cc, #cc00ff);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 20px;
+            border-radius: 50px;
+            cursor: pointer;
+            margin: 10px;
+            box-shadow: 0 0 15px #ff00cc;
+            transition: all 0.3s ease;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        .btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 25px #ff00cc;
+        }
+        .hidden {
+            display: none;
+        }
+        .neon-text {
+            color: #fff;
+            text-shadow: 0 0 5px #fff, 0 0 10px #fff, 0 0 15px #ff9900, 0 0 20px #ff9900;
+        }
+        .star-wars-scroll-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #0a0a2a;
+            overflow: hidden;
+            perspective: 400px;
+            z-index: 20;
+        }
+        .star-wars-scroll {
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%) rotateX(25deg);
+            width: 90%;
+            height: auto;
+            transform-origin: 50% 100%;
+            animation: scroll 60s linear forwards;
+            color: #ff0;
+            font-family: 'Times New Roman', Times, serif;
+            font-size: 24px;
+            text-align: justify;
+            text-shadow: 2px 2px 4px #000;
+            line-height: 1.5;
+        }
+        .star-wars-scroll h3 {
+            font-size: 32px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .star-wars-scroll p {
+            margin-bottom: 1em;
+        }
+        @keyframes scroll {
+            0% { top: 100%; }
+            100% { top: -200%; }
+        }
+        #high-score-screen {
+            background: rgba(10, 20, 40, 0.95);
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 0 20px rgba(0, 247, 255, 0.5);
+            text-align: center;
+        }
+        #high-score-list {
+            list-style: none;
+            text-align: left;
+            margin-top: 20px;
+            font-size: 20px;
+        }
+        #high-score-list li {
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        #high-score-list li:last-child {
+            border-bottom: none;
+        }
+        .high-score-name {
+            color: #00ffcc;
+        }
+        .high-score-score {
+            color: #ff0;
+        }
+        .name-input {
+            margin-top: 20px;
+        }
+        .name-input input {
+            padding: 10px;
+            border: 2px solid #00ffcc;
+            background: #0a2a4a;
+            color: #fff;
+            font-size: 16px;
+            border-radius: 5px;
+            outline: none;
+        }
+        .audio-notice {
+            font-size: 12px;
+            color: #aaa;
+            margin-top: 10px;
+            text-align: center;
+        }
+
+        #audio-permission-notice {
+            color: #ff9900;
+            font-weight: bold;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 0.7; }
+            50% { opacity: 1; }
+            100% { opacity: 0.7; }
+        }
+    </style>
+</head>
+<body>
+    <h1 class="neon-text">Nini's Banana Boat Adventure</h1>
+    <div id="game-container">
+        <canvas id="game-canvas" width="800" height="650"></canvas>
+        <div id="ui-container">
+            <div class="score-display">Score: <span id="score">0</span></div>
+            <div class="score-display">Level: <span id="level">1</span></div>
+            <div class="score-display">Lives: <span id="lives-count">3</span></div>
+        </div>
+        <div id="start-screen" class="screen">
+            <h2>Ready to Play?</h2>
+            <div class="instructions">
+                <p>Help Nini the chimpanzee jump from platform to banana boat!</p>
+                <p>Click or press **SPACE** to jump. Time your jump to land on the moving banana boats.</p>
+                <p>Use the **LEFT** and **RIGHT** arrow keys to move on the platform.</p>
+                <p>Nini has 3 lives. Lose a life if you fall in the water.</p>
+                <p>Gain an extra life every time you level up!</p>
+                <p>Survive 5 jumps to reach the next level!</p>
+            </div>
+            <button id="start-btn" class="btn">Start Game</button>
+            <button id="show-scores-btn" class="btn">High Scores</button>
+        </div>
+        <div id="game-over-screen" class="screen hidden">
+            <h2>Game Over!</h2>
+            <p>Nini fell into the water!</p>
+            <p class="score-display">Final Score: <span id="final-score">0</span></p>
+            <p class="score-display">Level Reached: <span id="final-level">1</span></p>
+            <p class="score-display">Total Jumps: <span id="final-jumps">0</span></p>
+            <div id="save-score-container" class="name-input hidden">
+                <p>You made a high score! Enter your name:</p>
+                <input type="text" id="player-name-input" maxlength="10">
+                <button id="save-score-btn" class="btn">Save Score</button>
+            </div>
+            <button id="restart-btn" class="btn">Play Again</button>
+        </div>
+        <div id="high-score-screen" class="screen hidden">
+            <h2>High Scores</h2>
+            <ul id="high-score-list"></ul>
+            <button id="back-to-menu-btn" class="btn">Back to Menu</button>
+        </div>
+        <div id="mission-complete-screen" class="star-wars-scroll-container hidden">
+            <div class="star-wars-scroll">
+                <p class="title">NINI'S GRAND ADVENTURE</p>
+                <p>In a world of floating banana boats and dangerous waters, a hero emerged...</p>
+                <h3>MISSION ACCOMPLISHED</h3>
+                <p>After a daring journey, Nini has navigated the treacherous waters, leaping from banana boat to banana boat with incredible skill.</p>
+                <p>The final score is a testament to her bravery and agility, proving that even a small chimpanzee can achieve greatness.</p>
+                <p>Congratulations, hero! You have successfully completed Nini's Grand Adventure, securing your place in the high score hall of fame!</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Canvas setup
+        const canvas = document.getElementById('game-canvas');
+        const ctx = canvas.getContext('2d');
+
+        // UI Elements
+        const startScreen = document.getElementById('start-screen');
+        const gameOverScreen = document.getElementById('game-over-screen');
+        const missionCompleteScreen = document.getElementById('mission-complete-screen');
+        const highScoreScreen = document.getElementById('high-score-screen');
+        const startBtn = document.getElementById('start-btn');
+        const restartBtn = document.getElementById('restart-btn');
+        const showScoresBtn = document.getElementById('show-scores-btn');
+        const backToMenuBtn = document.getElementById('back-to-menu-btn');
+        const saveScoreBtn = document.getElementById('save-score-btn');
+        const scoreElement = document.getElementById('score');
+        const levelElement = document.getElementById('level');
+        const livesCountElement = document.getElementById('lives-count');
+        const finalScoreElement = document.getElementById('final-score');
+        const finalLevelElement = document.getElementById('final-level');
+        const finalJumpsElement = document.getElementById('final-jumps');
+        const playerNameInput = document.getElementById('player-name-input');
+        const highScoreList = document.getElementById('high-score-list');
+        const saveScoreContainer = document.getElementById('save-score-container');
+
+        // Game state
+        let score = 0;
+        let jumps = 0;
+        let level = 1;
+        let lives = 3;
+        let gameRunning = false;
+        let animationId = null;
+        let difficultyLevel = 0;
+        let lastTime = 0;
+        const MISSION_COMPLETED_LEVEL = 5;
+
+        // Add roundRect polyfill
+        if (!CanvasRenderingContext2D.prototype.roundRect) {
+            CanvasRenderingContext2D.prototype.roundRect = function(x, y, width, height, radius) {
+                if (width < 2 * radius) radius = width / 2;
+                if (height < 2 * radius) radius = height / 2;
+                this.beginPath();
+                this.moveTo(x + radius, y);
+                this.arcTo(x + width, y, x + width, y + height, radius);
+                this.arcTo(x + width, y + height, x, y + height, radius);
+                this.arcTo(x, y + height, x, y, radius);
+                this.arcTo(x, y, x + width, y, radius);
+                this.closePath();
+                return this;
+            };
+        }
+
+
+        // Particle System Class - CORRECTED VERSION
+        class ParticleSystem {
+            constructor() {
+                this.particles = [];
+            }
+
+            emit(x, y, color, count, velocityRange) {
+                for (let i = 0; i < count / 2; i++) { // Reduced particle count
+                    const angle = Math.random() * Math.PI * 2;
+                    const speed = Math.random() * velocityRange;
+                    this.particles.push({
+                        x: x,
+                        y: y,
+                        vx: Math.cos(angle) * speed,
+                        vy: Math.sin(angle) * speed,
+                        color: color,
+                        size: Math.random() * 2 + 1, // Smaller particles
+                        alpha: 1,
+                        life: 50 // Shorter life
+                    });
+                }
+            }
+
+            update() {
+                for (let i = this.particles.length - 1; i >= 0; i--) {
+                    const p = this.particles[i];
+                    p.x += p.vx;
+                    p.y += p.vy;
+                    p.alpha -= 0.02; // Faster fade
+                    p.life--;
+                    if (p.life <= 0 || p.alpha <= 0) {
+                        this.particles.splice(i, 1);
+                    }
+                }
+            }
+
+            draw() {
+                this.particles.forEach(p => {
+                    ctx.save();
+                    ctx.globalAlpha = p.alpha;
+                    ctx.fillStyle = p.color;
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.restore();
+                });
+            }
+        }
+
+        const particleSystem = new ParticleSystem();
+
+
+        // Optimized Audio System fallback for missing files, with proper user interaction handling
+        const audio = {
+            sounds: {},
+            audioContext: null,
+            audioInitialized: false,
+            
+            init: function() {
+                // No heavy initialization until user interaction
+                this.sounds = {
+                    jump: { fallback: function() { audio.playTone(523.25, 0.1); } },
+                    splash: { fallback: function() { audio.playNoise(0.15); } },
+                    success: { fallback: function() { audio.playTone(783.99, 0.2); } }
+                };
+            },
+            
+            initAudioContext: function() {
+                if (this.audioContext || !this.audioInitialized) return;
+                
+                try {
+                    this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                    console.log("Audio context initialized");
+                } catch (e) {
+                    console.log("Web Audio API not supported");
+                }
+            },
+            
+            playTone: function(frequency, duration) {
+                if (!this.audioContext) return;
+                
+                try {
+                    const oscillator = this.audioContext.createOscillator();
+                    const gainNode = this.audioContext.createGain();
+                    
+                    oscillator.connect(gainNode);
+                    gainNode.connect(this.audioContext.destination);
+                    
+                    oscillator.frequency.value = frequency;
+                    gainNode.gain.value = 0.1;
+                    
+                    oscillator.start();
+                    oscillator.stop(this.audioContext.currentTime + duration);
+                } catch (e) {
+                    // Silent fail for audio errors
+                }
+            },
+            
+            playNoise: function(duration) {
+                if (!this.audioContext) return;
+                
+                try {
+                    const bufferSize = this.audioContext.sampleRate * duration;
+                    const buffer = this.audioContext.createBuffer(1, bufferSize, this.audioContext.sampleRate);
+                    const data = buffer.getChannelData(0);
+                    
+                    for (let i = 0; i < bufferSize; i++) {
+                        data[i] = Math.random() * 2 - 1;
+                    }
+                    
+                    const source = this.audioContext.createBufferSource();
+                    source.buffer = buffer;
+                    
+                    const gainNode = this.audioContext.createGain();
+                    gainNode.gain.setValueAtTime(0.1, this.audioContext.currentTime);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + duration);
+                    
+                    source.connect(gainNode);
+                    gainNode.connect(this.audioContext.destination);
+                    source.start();
+                } catch (e) {
+                    // Silent fail for audio errors
+                }
+            },
+            
+            play: function(sound) {
+                if (!this.sounds[sound] || !this.audioInitialized) return;
+                
+                // Use fallback directly for better performance
+                this.sounds[sound].fallback();
+            },
+            
+            enableAudio: function() {
+                this.audioInitialized = true;
+                this.initAudioContext();
+            }
+        };
+
+        // Initialize audio
+        audio.init();
+
+        // Enable audio on user interaction
+        function enableAudio() {
+            audio.enableAudio();
+            document.removeEventListener('click', enableAudio);
+            document.removeEventListener('keydown', enableAudio);
+        }
+
+        document.addEventListener('click', enableAudio, { once: true });
+        document.addEventListener('keydown', enableAudio, { once: true });
+
+
+        // Enhanced Sun
+        // Sky Objects
+        const sun = {
+            x: 700,
+            y: 100,
+            radius: 60,
+            color: '#FFD700',
+            glowColor: '#FF8C00',
+            pulse: 0,
+            draw() {
+                this.pulse += 0.03;
+                const glowSize = 40 + Math.sin(this.pulse) * 15;
+                
+                ctx.save();
+                
+                // Outer glow (largest)
+                const outerGradient = ctx.createRadialGradient(
+                    this.x, this.y, 0,
+                    this.x, this.y, this.radius + glowSize
+                );
+                outerGradient.addColorStop(0, 'rgba(255, 215, 0, 0.8)');
+                outerGradient.addColorStop(0.5, 'rgba(255, 140, 0, 0.4)');
+                outerGradient.addColorStop(1, 'rgba(255, 69, 0, 0)');
+                
+                ctx.fillStyle = outerGradient;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius + glowSize, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Middle glow
+                const middleGradient = ctx.createRadialGradient(
+                    this.x, this.y, 0,
+                    this.x, this.y, this.radius + glowSize/2
+                );
+                middleGradient.addColorStop(0, 'rgba(255, 255, 200, 0.9)');
+                middleGradient.addColorStop(0.7, 'rgba(255, 215, 0, 0.5)');
+                middleGradient.addColorStop(1, 'rgba(255, 140, 0, 0)');
+                
+                ctx.fillStyle = middleGradient;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius + glowSize/2, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Sun core
+                const coreGradient = ctx.createRadialGradient(
+                    this.x, this.y, 0,
+                    this.x, this.y, this.radius
+                );
+                coreGradient.addColorStop(0, '#FFFFC0');
+                coreGradient.addColorStop(0.7, '#FFD700');
+                coreGradient.addColorStop(1, '#FF8C00');
+                
+                ctx.fillStyle = coreGradient;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Sun surface texture
+                ctx.fillStyle = 'rgba(255, 100, 0, 0.2)';
+                for (let i = 0; i < 20; i++) {
+                    const angle = Math.random() * Math.PI * 2;
+                    const distance = Math.random() * this.radius * 0.8;
+                    const size = Math.random() * 8 + 4;
+                    const x = this.x + Math.cos(angle) * distance;
+                    const y = this.y + Math.sin(angle) * distance;
+                    ctx.beginPath();
+                    ctx.arc(x, y, size, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+                
+                // Sun rays
+                ctx.strokeStyle = 'rgba(255, 215, 0, 0.3)';
+                ctx.lineWidth = 2;
+                for (let i = 0; i < 12; i++) {
+                    const angle = (i / 12) * Math.PI * 2;
+                    const length = 30 + Math.sin(this.pulse * 2 + i) * 10;
+                    ctx.beginPath();
+                    ctx.moveTo(
+                        this.x + Math.cos(angle) * (this.radius + 5),
+                        this.y + Math.sin(angle) * (this.radius + 5)
+                    );
+                    ctx.lineTo(
+                        this.x + Math.cos(angle) * (this.radius + length),
+                        this.y + Math.sin(angle) * (this.radius + length)
+                    );
+                    ctx.stroke();
+                }
+                
+                ctx.restore();
+            }
+        };
+
+
+        class LightRay {
+            constructor() {
+                this.x = Math.random() * canvas.width;
+                this.width = Math.random() * 30 + 10;
+                this.height = Math.random() * 200 + 100;
+                this.speed = Math.random() * 0.2 + 0.1;
+                this.opacity = Math.random() * 0.1 + 0.05;
+                this.y = -this.height;
+            }
+            
+            update() {
+                this.y += this.speed;
+                if (this.y > canvas.height) {
+                    this.y = -this.height;
+                    this.x = Math.random() * canvas.width;
+                }
+            }
+            
+            draw() {
+                ctx.save();
+                ctx.globalAlpha = this.opacity;
+                
+                const gradient = ctx.createLinearGradient(this.x, this.y, this.x, this.y + this.height);
+                gradient.addColorStop(0, 'rgba(255, 255, 200, 0.8)');
+                gradient.addColorStop(1, 'rgba(255, 255, 200, 0)');
+                
+                ctx.fillStyle = gradient;
+                ctx.beginPath();
+                ctx.moveTo(this.x - this.width/2, this.y);
+                ctx.lineTo(this.x + this.width/2, this.y);
+                ctx.lineTo(this.x, this.y + this.height);
+                ctx.closePath();
+                ctx.fill();
+                
+                ctx.restore();
+            }
+        }
+
+        // Create light rays array (add this after cloud initialization)
+        const lightRays = [];
+        for (let i = 0; i < 8; i++) {
+            lightRays.push(new LightRay());
+        }
+
+
+        class Cloud {
+            constructor() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * 120 + 30;
+                this.speed = Math.random() * 0.5 + 0.2;
+                this.scale = Math.random() * 0.5 + 0.7;
+                this.opacity = Math.random() * 0.3 + 0.7;
+                this.circles = [];
+                this.generateCloudShape();
+                this.color = '#FFFFFF';
+            }
+
+            generateCloudShape() {
+                this.circles = [];
+                const numCircles = Math.floor(Math.random() * 6) + 6;
+                const baseSize = 15 * this.scale;
+                
+                for (let i = 0; i < numCircles; i++) {
+                    const angle = Math.random() * Math.PI * 2;
+                    const distance = Math.random() * 25 * this.scale;
+                    this.circles.push({
+                        x: Math.cos(angle) * distance,
+                        y: Math.sin(angle) * distance,
+                        radius: Math.random() * 8 + baseSize
+                    });
+                }
+            }
+
+            update() {
+                this.x -= this.speed;
+                if (this.x + 200 * this.scale < 0) {
+                    this.x = canvas.width + 100;
+                    this.y = Math.random() * 120 + 30;
+                    this.speed = Math.random() * 0.5 + 0.2;
+                    this.scale = Math.random() * 0.5 + 0.7;
+                    this.opacity = Math.random() * 0.3 + 0.7;
+                    this.generateCloudShape();
+                }
+            }
+
+            draw() {
+                ctx.save();
+                ctx.globalAlpha = this.opacity;
+                
+                // Draw cloud with soft shadow
+                this.circles.forEach(c => {
+                    const gradient = ctx.createRadialGradient(
+                        this.x + c.x, this.y + c.y, 0,
+                        this.x + c.x, this.y + c.y, c.radius
+                    );
+                    gradient.addColorStop(0, 'rgba(255, 255, 255, 0.9)');
+                    gradient.addColorStop(1, 'rgba(255, 255, 255, 0.4)');
+                    
+                    ctx.fillStyle = gradient;
+                    ctx.beginPath();
+                    ctx.arc(this.x + c.x, this.y + c.y, c.radius, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    // Soft shadow underneath
+                    ctx.fillStyle = 'rgba(200, 200, 220, 0.2)';
+                    ctx.beginPath();
+                    ctx.arc(this.x + c.x, this.y + c.y + 3, c.radius * 0.9, 0, Math.PI * 2);
+                    ctx.fill();
+                });
+                
+                // Highlight on top of clouds
+                this.circles.forEach(c => {
+                    if (c.y < 0) { // Only add highlights to top parts
+                        const highlightGradient = ctx.createRadialGradient(
+                            this.x + c.x, this.y + c.y - c.radius/3, 0,
+                            this.x + c.x, this.y + c.y - c.radius/3, c.radius/2
+                        );
+                        highlightGradient.addColorStop(0, 'rgba(255, 255, 255, 0.8)');
+                        highlightGradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
+                        
+                        ctx.fillStyle = highlightGradient;
+                        ctx.beginPath();
+                        ctx.arc(this.x + c.x, this.y + c.y - c.radius/3, c.radius/2, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                });
+                
+                ctx.restore();
+            }
+        };
+
+        const clouds = [new Cloud(), new Cloud(), new Cloud()];
+        
+
+        class Seabed {
+            constructor() {
+                this.coral = this.generateCoral();
+                this.plants = this.generatePlants();
+                this.coins = this.generateCoins();
+                this.rocks = this.generateRocks();
+                this.bubbles = [];
+                this.bubbleTimer = 0;
+            }
+
+            generateCoral() {
+                const corals = [];
+                const coralCount = 15 + Math.floor(Math.random() * 15);
+                
+                for (let i = 0; i < coralCount; i++) {
+                    const coralType = Math.floor(Math.random() * 4);
+                    const x = Math.random() * canvas.width;
+                    const y = canvas.height - 80 + Math.random() * 60;
+                    const size = Math.random() * 20 + 15;
+                    const color = `hsl(${Math.random() * 360}, ${70 + Math.random() * 30}%, ${40 + Math.random() * 30}%)`;
+                    
+                    corals.push({ x, y, size, color, coralType });
+                }
+                return corals;
+            }
+
+            generatePlants() {
+                const plants = [];
+                const plantCount = 15 + Math.floor(Math.random() * 10);
+                
+                for (let i = 0; i < plantCount; i++) {
+                    const plantType = Math.floor(Math.random() * 3);
+                    const x = Math.random() * canvas.width;
+                    const y = canvas.height - 40 + Math.random() * 35;
+                    const height = Math.random() * 30 + 20;
+                    const width = Math.random() * 8 + 5;
+                    const color = `hsl(${120 + Math.random() * 60}, ${70 + Math.random() * 30}%, ${30 + Math.random() * 20}%)`;
+                    
+                    plants.push({
+                        x, y, height, width, color, plantType,
+                        sway: Math.random() * Math.PI * 2,
+                        swaySpeed: Math.random() * 0.05 + 0.02
+                    });
+                }
+                return plants;
+            }
+
+            generateRocks() {
+                const rocks = [];
+                const rockCount = 10 + Math.floor(Math.random() * 8);
+                
+                for (let i = 0; i < rockCount; i++) {
+                    const x = Math.random() * canvas.width;
+                    const y = canvas.height - 30 + Math.random() * 25;
+                    const size = Math.random() * 25 + 15;
+                    const color = `hsl(0, 0%, ${20 + Math.random() * 30}%)`;
+                    
+                    rocks.push({
+                        x, y, size, color,
+                        width: size * (0.8 + Math.random() * 0.4),
+                        height: size * (0.6 + Math.random() * 0.4)
+                    });
+                }
+                return rocks;
+            }
+
+            generateCoins() {
+                const coins = [];
+                for (let i = 0; i < 15; i++) {
+                    coins.push({
+                        x: Math.random() * canvas.width,
+                        y: canvas.height - 25 + Math.random() * 20,
+                        size: Math.random() * 10 + 5,
+                        rotation: Math.random() * Math.PI * 2,
+                        spinSpeed: Math.random() * 0.05 + 0.02
+                    });
+                }
+                return coins;
+            }
+
+            updateBubbles(deltaTime) {
+                this.bubbleTimer += deltaTime;
+                
+                if (this.bubbleTimer > 500) {
+                    this.bubbleTimer = 0;
+                    if (Math.random() < 0.3) {
+                        this.bubbles.push({
+                            x: Math.random() * canvas.width,
+                            y: canvas.height - 10,
+                            size: Math.random() * 8 + 4,
+                            speed: Math.random() * 0.5 + 0.3,
+                            opacity: Math.random() * 0.5 + 0.3
+                        });
+                    }
+                }
+                
+                for (let i = this.bubbles.length - 1; i >= 0; i--) {
+                    this.bubbles[i].y -= this.bubbles[i].speed;
+                    this.bubbles[i].opacity -= 0.005;
+                    
+                    if (this.bubbles[i].opacity <= 0 || this.bubbles[i].y < water.y) {
+                        this.bubbles.splice(i, 1);
+                    }
+                }
+            }
+
+            drawSand() {
+                const sandGradient = ctx.createLinearGradient(0, water.y + water.height, 0, canvas.height);
+                sandGradient.addColorStop(0, '#C2B280');
+                sandGradient.addColorStop(0.3, '#D2C39B');
+                sandGradient.addColorStop(1, '#E5D8B0');
+                
+                ctx.fillStyle = sandGradient;
+                ctx.fillRect(0, water.y + water.height, canvas.width, canvas.height - (water.y + water.height));
+                
+                ctx.fillStyle = 'rgba(170, 150, 100, 0.2)';
+                for (let i = 0; i < 200; i++) {
+                    const x = Math.random() * canvas.width;
+                    const y = water.y + water.height + Math.random() * (canvas.height - (water.y + water.height));
+                    const size = Math.random() * 3 + 1;
+                    
+                    ctx.beginPath();
+                    ctx.arc(x, y, size, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            }
+
+            drawRocks() {
+                this.rocks.forEach(rock => {
+                    ctx.save();
+                    
+                    ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+                    ctx.beginPath();
+                    ctx.ellipse(rock.x + 3, rock.y + 3, rock.width * 0.5, rock.height * 0.5, 0, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    ctx.fillStyle = rock.color;
+                    ctx.beginPath();
+                    ctx.ellipse(rock.x, rock.y, rock.width * 0.5, rock.height * 0.5, 0, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    ctx.fillStyle = `hsl(0, 0%, ${60 + Math.random() * 20}%)`;
+                    ctx.beginPath();
+                    ctx.arc(rock.x - rock.width * 0.2, rock.y - rock.height * 0.2, rock.size * 0.2, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    ctx.restore();
+                });
+            }
+
+            drawPlants() {
+                this.plants.forEach(plant => {
+                    plant.sway += plant.swaySpeed;
+                    const swayOffset = Math.sin(plant.sway) * 5;
+                    
+                    ctx.save();
+                    ctx.translate(plant.x, plant.y);
+                    
+                    switch (plant.plantType) {
+                        case 0:
+                            ctx.fillStyle = plant.color;
+                            ctx.beginPath();
+                            ctx.moveTo(0, 0);
+                            ctx.quadraticCurveTo(swayOffset, -plant.height * 0.3, swayOffset * 1.5, -plant.height);
+                            ctx.quadraticCurveTo(swayOffset, -plant.height * 0.7, 0, 0);
+                            ctx.fill();
+                            break;
+                            
+                        case 1:
+                            ctx.fillStyle = plant.color;
+                            ctx.beginPath();
+                            ctx.moveTo(0, 0);
+                            for (let i = 1; i <= 5; i++) {
+                                const segmentHeight = plant.height / 5;
+                                const segmentSway = Math.sin(plant.sway + i * 0.5) * 8;
+                                ctx.lineTo(segmentSway, -i * segmentHeight);
+                            }
+                            for (let i = 5; i >= 0; i--) {
+                                const segmentHeight = plant.height / 5;
+                                const segmentSway = Math.sin(plant.sway + i * 0.5) * 8 + plant.width;
+                                ctx.lineTo(segmentSway, -i * segmentHeight);
+                            }
+                            ctx.closePath();
+                            ctx.fill();
+                            break;
+                            
+                        case 2:
+                            ctx.fillStyle = plant.color;
+                            ctx.beginPath();
+                            ctx.moveTo(0, 0);
+                            ctx.bezierCurveTo(
+                                swayOffset, -plant.height * 0.3,
+                                swayOffset * 0.5, -plant.height * 0.7,
+                                swayOffset, -plant.height
+                            );
+                            ctx.bezierCurveTo(
+                                -swayOffset * 0.5, -plant.height * 0.7,
+                                -swayOffset, -plant.height * 0.3,
+                                0, 0
+                            );
+                            ctx.fill();
+                            break;
+                    }
+                    
+                    ctx.restore();
+                });
+            }
+
+            drawCoral() {
+                this.coral.forEach(c => {
+                    ctx.save();
+                    
+                    switch (c.coralType) {
+                        case 0:
+                            ctx.fillStyle = c.color;
+                            ctx.beginPath();
+                            ctx.arc(c.x, c.y, c.size, 0, Math.PI * 2);
+                            ctx.fill();
+                            
+                            ctx.fillStyle = `hsl(${parseInt(c.color.split('(')[1].split(',')[0])}, 100%, 70%)`;
+                            for (let i = 0; i < 8; i++) {
+                                const angle = (i / 8) * Math.PI * 2;
+                                const distance = c.size * 0.7;
+                                ctx.beginPath();
+                                ctx.arc(
+                                    c.x + Math.cos(angle) * distance,
+                                    c.y + Math.sin(angle) * distance,
+                                    c.size * 0.2, 0, Math.PI * 2
+                                );
+                                ctx.fill();
+                            }
+                            break;
+                            
+                        case 1:
+                            ctx.fillStyle = c.color;
+                            ctx.beginPath();
+                            ctx.moveTo(c.x, c.y);
+                            for (let i = 0; i < 3; i++) {
+                                const angle = -Math.PI/2 + (i * Math.PI/3);
+                                ctx.lineTo(
+                                    c.x + Math.cos(angle) * c.size,
+                                    c.y + Math.sin(angle) * c.size * 0.5
+                                );
+                                ctx.lineTo(c.x, c.y);
+                            }
+                            ctx.fill();
+                            
+                            ctx.fillStyle = `hsl(${parseInt(c.color.split('(')[1].split(',')[0])}, 100%, 80%)`;
+                            for (let i = 0; i < 3; i++) {
+                                const angle = -Math.PI/2 + (i * Math.PI/3);
+                                ctx.beginPath();
+                                ctx.arc(
+                                    c.x + Math.cos(angle) * c.size,
+                                    c.y + Math.sin(angle) * c.size * 0.5,
+                                    c.size * 0.15, 0, Math.PI * 2
+                                );
+                                ctx.fill();
+                            }
+                            break;
+                            
+                        case 2:
+                            ctx.fillStyle = c.color;
+                            ctx.beginPath();
+                            ctx.arc(c.x, c.y, c.size * 0.8, 0, Math.PI * 2);
+                            ctx.fill();
+                            
+                            ctx.fillStyle = `hsl(${parseInt(c.color.split('(')[1].split(',')[0])}, 100%, 60%)`;
+                            ctx.beginPath();
+                            ctx.arc(c.x, c.y, c.size * 0.5, 0, Math.PI * 2);
+                            ctx.fill();
+                            
+                            ctx.fillStyle = `hsl(${parseInt(c.color.split('(')[1].split(',')[0])}, 100%, 80%)`;
+                            ctx.beginPath();
+                            ctx.arc(c.x, c.y, c.size * 0.3, 0, Math.PI * 2);
+                            ctx.fill();
+                            break;
+                            
+                        case 3:
+                            ctx.fillStyle = c.color;
+                            ctx.beginPath();
+                            for (let i = 0; i < 5; i++) {
+                                const angle = (i / 5) * Math.PI * 2;
+                                const nextAngle = ((i + 1) / 5) * Math.PI * 2;
+                                
+                                ctx.lineTo(
+                                    c.x + Math.cos(angle) * c.size,
+                                    c.y + Math.sin(angle) * c.size
+                                );
+                                ctx.lineTo(
+                                    c.x + Math.cos(nextAngle) * c.size * 0.5,
+                                    c.y + Math.sin(nextAngle) * c.size * 0.5
+                                );
+                            }
+                            ctx.closePath();
+                            ctx.fill();
+                            break;
+                    }
+                    
+                    ctx.restore();
+                });
+            }
+
+            drawCoins() {
+                this.coins.forEach(coin => {
+                    coin.rotation += coin.spinSpeed;
+                    
+                    ctx.save();
+                    ctx.translate(coin.x, coin.y);
+                    ctx.rotate(coin.rotation);
+                    
+                    ctx.shadowBlur = 15;
+                    ctx.shadowColor = '#ffcc00';
+                    
+                    ctx.fillStyle = '#ffcc00';
+                    ctx.beginPath();
+                    ctx.arc(0, 0, coin.size, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    ctx.strokeStyle = '#ffaa00';
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.arc(0, 0, coin.size, 0, Math.PI * 2);
+                    ctx.stroke();
+                    
+                    ctx.fillStyle = '#000';
+                    ctx.font = `${coin.size * 0.8}px Arial`;
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText('$', 0, 0);
+                    
+                    ctx.restore();
+                });
+            }
+
+            drawBubbles() {
+                this.bubbles.forEach(bubble => {
+                    ctx.save();
+                    ctx.globalAlpha = bubble.opacity;
+                    ctx.fillStyle = '#ffffff';
+                    ctx.beginPath();
+                    ctx.arc(bubble.x, bubble.y, bubble.size, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+                    ctx.beginPath();
+                    ctx.arc(bubble.x - bubble.size * 0.3, bubble.y - bubble.size * 0.3, bubble.size * 0.3, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    ctx.restore();
+                });
+            }
+
+            drawSunkenBananaBoat() {
+                ctx.save();
+                ctx.translate(canvas.width / 4, canvas.height - 25);
+                ctx.rotate(0.2);
+
+                const width = 100;
+                const height = 30;
+                const color = '#8A7A00';
+
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+                ctx.beginPath();
+                ctx.arc(15, 5, width / 2, 0.5, Math.PI - 0.5, false);
+                ctx.lineTo(width / 2 * Math.cos(Math.PI - 0.5), width / 2 * Math.sin(Math.PI - 0.5));
+                ctx.arc(15, 15, width / 2 - 15, Math.PI - 0.5, 0.5, true);
+                ctx.lineTo(width / 2 * Math.cos(0.5), width / 2 * Math.sin(0.5));
+                ctx.fill();
+
+                ctx.fillStyle = color;
+                ctx.beginPath();
+                ctx.arc(0, 0, width / 2, 0.5, Math.PI - 0.5, false);
+                ctx.lineTo(width / 2 * Math.cos(Math.PI - 0.5), width / 2 * Math.sin(Math.PI - 0.5));
+                ctx.arc(0, 10, width / 2 - 15, Math.PI - 0.5, 0.5, true);
+                ctx.lineTo(width / 2 * Math.cos(0.5), width / 2 * Math.sin(0.5));
+                ctx.fill();
+
+                ctx.strokeStyle = '#6A5A00';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.arc(0, 10, width / 2 - 15, Math.PI - 0.5, 0.5, true);
+                ctx.stroke();
+
+                ctx.fillStyle = '#3A5F3A';
+                for (let i = 0; i < 5; i++) {
+                    const x = -width/3 + (i * width/6);
+                    ctx.beginPath();
+                    ctx.moveTo(x, -5);
+                    ctx.quadraticCurveTo(x + 5, -15, x + 10, -5);
+                    ctx.quadraticCurveTo(x + 5, -20, x, -5);
+                    ctx.fill();
+                }
+
+                ctx.restore();
+            }
+
+            update(deltaTime) {
+                this.updateBubbles(deltaTime);
+                this.plants.forEach(plant => {
+                    plant.sway += plant.swaySpeed;
+                });
+                this.coins.forEach(coin => {
+                    coin.rotation += coin.spinSpeed;
+                });
+            }
+
+            draw() {
+                this.drawSand();
+                this.drawRocks();
+                this.drawPlants();
+                this.drawCoral();
+                this.drawSunkenBananaBoat();
+                this.drawCoins();
+                this.drawBubbles();
+            }
+        }
+        // Water - Move this BEFORE the Shark class
+        const water = {
+            y: 350,
+            height: 250,
+            waves: [],
+            init() {
+                this.waves = [
+                    { speed: 1, color: '#0066FF', offset: 0 },
+                    { speed: 1.2, color: '#0099FF', offset: 0 },
+                    { speed: 1.5, color: '#00CCFF', offset: 0 }
+                ];
+            },
+            draw() {
+                // Water body with gradient
+                const waterGradient = ctx.createLinearGradient(0, this.y, 0, this.y + this.height);
+                waterGradient.addColorStop(0, '#0066AA');
+                waterGradient.addColorStop(0.5, '#004488');
+                waterGradient.addColorStop(1, '#002255');
+                
+                ctx.fillStyle = waterGradient;
+                ctx.fillRect(0, this.y, canvas.width, this.height);
+
+                // Animated waves with foam
+                this.waves.forEach(wave => {
+                    wave.offset += wave.speed;
+                    
+                    // Wave body
+                    ctx.strokeStyle = wave.color;
+                    ctx.lineWidth = 3;
+                    ctx.beginPath();
+                    for (let i = 0; i < canvas.width; i += 20) {
+                        ctx.lineTo(i, this.y + 10 + Math.sin((i + wave.offset) / 50) * 8);
+                    }
+                    ctx.stroke();
+                    
+                    // Wave foam (white caps)
+                    ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+                    ctx.beginPath();
+                    for (let i = 0; i < canvas.width; i += 25) {
+                        const yPos = this.y + 8 + Math.sin((i + wave.offset) / 50) * 8;
+                        ctx.beginPath();
+                        ctx.arc(i, yPos, 3, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                });
+            },
+            checkDrown() {
+                return nini.y >= this.y + 20 && !nini.isDrowning;
+            }
+        };
+
+
+
+
+        // Shark Class (use the global water object directly)
+        class Shark {
+            constructor(startX) {
+                this.width = 100;
+                this.height = 40;
+                this.x = startX || (Math.random() < 0.5 ? -this.width : canvas.width);
+                this.y = water.y + Math.random() * (water.height - this.height - 20) + 10;
+                this.speed = (Math.random() * 1.5) + 1 + difficultyLevel * 0.5;
+                this.direction = this.x < 0 ? 1 : -1; // 1 for right, -1 for left
+                this.color = '#888888';
+                this.mouthOpen = false;
+                this.eating = false;
+            }
+
+            update() {
+                if (this.eating) return;
+
+                this.x += this.speed * this.direction;
+
+                if (this.direction === 1 && this.x > canvas.width + 50) {
+                    this.x = -this.width;
+                    this.y = water.y + Math.random() * (water.height - this.height - 20) + 10;
+                    this.speed = (Math.random() * 1.5) + 1 + difficultyLevel * 0.5;
+                } else if (this.direction === -1 && this.x < -this.width - 50) {
+                    this.x = canvas.width;
+                    this.y = water.y + Math.random() * (water.height - this.height - 20) + 10;
+                    this.speed = (Math.random() * 1.5) + 1 + difficultyLevel * 0.5;
+                }
+            }
+            
+            checkAttack(target) {
+                if (target.isDrowning && !this.eating) {
+                    const distance = Math.sqrt(Math.pow(this.x - target.x, 2) + Math.pow(this.y - target.y, 2));
+                    if (distance < 50) {
+                        this.eating = true;
+                        this.mouthOpen = true;
+                        return true;
+                    } else {
+                        // Move towards the target
+                        const angle = Math.atan2(target.y - this.y, target.x - this.x);
+                        this.x += Math.cos(angle) * this.speed * 2;
+                        this.y += Math.sin(angle) * this.speed * 2;
+                        return false;
+                    }
+                }
+                return false;
+            }
+
+            draw() {
+                ctx.save();
+                ctx.translate(this.x, this.y);
+                ctx.scale(this.direction, 1); // Flip horizontally for direction
+
+                // Body with gradient for depth
+                const bodyGradient = ctx.createLinearGradient(0, 0, this.width, 0);
+                bodyGradient.addColorStop(0, '#666666');
+                bodyGradient.addColorStop(1, '#999999');
+                
+                ctx.fillStyle = bodyGradient;
+                ctx.beginPath();
+                ctx.moveTo(0, this.height / 2);
+                ctx.bezierCurveTo(
+                    this.width * 0.3, 0,
+                    this.width * 0.7, 0,
+                    this.width, this.height / 2
+                );
+                ctx.bezierCurveTo(
+                    this.width * 0.7, this.height,
+                    this.width * 0.3, this.height,
+                    0, this.height / 2
+                );
+                ctx.closePath();
+                ctx.fill();
+
+                // Add texture/scales
+                ctx.strokeStyle = '#555555';
+                ctx.lineWidth = 1;
+                for (let i = 0; i < 5; i++) {
+                    const xPos = this.width * (0.2 + i * 0.15);
+                    ctx.beginPath();
+                    ctx.moveTo(xPos, 5);
+                    ctx.lineTo(xPos, this.height - 5);
+                    ctx.stroke();
+                }
+
+                // Tail fin
+                ctx.fillStyle = '#555555';
+                ctx.beginPath();
+                ctx.moveTo(-15, this.height / 2);
+                ctx.lineTo(-35, this.height / 2 - 20);
+                ctx.lineTo(-35, this.height / 2 + 20);
+                ctx.closePath();
+                ctx.fill();
+
+                // Dorsal fin
+                ctx.beginPath();
+                ctx.moveTo(this.width * 0.4, 0);
+                ctx.lineTo(this.width * 0.5, -20);
+                ctx.lineTo(this.width * 0.6, 0);
+                ctx.closePath();
+                ctx.fill();
+
+                // Pectoral fin (front)
+                ctx.beginPath();
+                ctx.moveTo(this.width * 0.2, this.height / 2);
+                ctx.lineTo(this.width * 0.1, this.height / 2 - 15);
+                ctx.lineTo(this.width * 0.05, this.height / 2);
+                ctx.closePath();
+                ctx.fill();
+
+                // Pectoral fin (back)
+                ctx.beginPath();
+                ctx.moveTo(this.width * 0.4, this.height / 2);
+                ctx.lineTo(this.width * 0.35, this.height / 2 - 12);
+                ctx.lineTo(this.width * 0.3, this.height / 2);
+                ctx.closePath();
+                ctx.fill();
+
+                // Eye
+                ctx.fillStyle = '#fff';
+                ctx.beginPath();
+                ctx.arc(this.width * 0.85, this.height * 0.3, 6, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.fillStyle = '#000';
+                ctx.beginPath();
+                ctx.arc(this.width * 0.86, this.height * 0.28, 3, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.fillStyle = '#fff';
+                ctx.beginPath();
+                ctx.arc(this.width * 0.87, this.height * 0.27, 1, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Gills
+                ctx.strokeStyle = '#444444';
+                ctx.lineWidth = 1.5;
+                for (let i = 0; i < 3; i++) {
+                    const xPos = this.width * (0.7 + i * 0.05);
+                    ctx.beginPath();
+                    ctx.arc(xPos, this.height * 0.4, 8, Math.PI * 0.5, Math.PI * 1.5);
+                    ctx.stroke();
+                }
+
+                // Mouth
+                if (this.mouthOpen || this.eating) {
+                    ctx.fillStyle = '#ff0000';
+                    ctx.beginPath();
+                    ctx.arc(this.width * 0.95, this.height / 2, this.height * 0.4, 
+                           -Math.PI * 0.3, Math.PI * 0.3, false);
+                    ctx.fill();
+                    
+                    // Teeth
+                    ctx.fillStyle = '#fff';
+                    const teethCount = 8;
+                    for (let i = 0; i < teethCount; i++) {
+                        const angle = -Math.PI * 0.3 + (i * Math.PI * 0.6 / (teethCount - 1));
+                        const x1 = this.width * 0.95 + Math.cos(angle) * (this.height * 0.4 - 2);
+                        const y1 = this.height / 2 + Math.sin(angle) * (this.height * 0.4 - 2);
+                        const x2 = this.width * 0.95 + Math.cos(angle) * (this.height * 0.4 + 5);
+                        const y2 = this.height / 2 + Math.sin(angle) * (this.height * 0.4 + 5);
+                        
+                        ctx.beginPath();
+                        ctx.moveTo(x1, y1);
+                        ctx.lineTo(x2, y2);
+                        ctx.lineTo(x2 + Math.cos(angle + Math.PI/2) * 3, y2 + Math.sin(angle + Math.PI/2) * 3);
+                        ctx.closePath();
+                        ctx.fill();
+                    }
+                }
+
+                ctx.restore();
+            }
+
+            checkCollision(obj) {
+                return this.x < obj.x + obj.width &&
+                       this.x + this.width > obj.x &&
+                       this.y < obj.y + obj.height &&
+                       this.y + this.height > obj.y;
+            }
+        }
+
+        // Nini (Player)
+        const nini = {
+            x: 100,
+            y: 300,
+            width: 40,
+            height: 50,
+            color: '#A52A2A',
+            drownedColor: '#8a2be2',
+            isDrowning: false,
+            jumping: false,
+            ridingBoat: null,
+            velocityX: 0,
+            velocityY: 0,
+            gravity: 0.6,
+            jumpPower: 14,
+            speed: 6,
+            groundY: 300,
+            movingLeft: false,
+            movingRight: false,
+            jump() {
+                if (!this.jumping && !this.isDrowning) {
+                    this.jumping = true;
+                    this.velocityY = -this.jumpPower;
+                    this.velocityX = this.speed;
+                    this.ridingBoat = null;
+                    audio.play('jump');
+                    particleSystem.emit(this.x, this.y, '#fff', 20, 5);
+                }
+            },
+            update() {
+                if (this.isDrowning) {
+                    this.y += 0.7;
+                    return;
+                }
+
+                if (this.jumping) {
+                    this.x += this.velocityX;
+                    this.y += this.velocityY;
+                    this.velocityY += this.gravity;
+                } else if (this.ridingBoat) {
+                    this.x = this.ridingBoat.x + this.ridingBoat.width / 2;
+                    this.y = this.ridingBoat.y - this.height / 2;
+                } else {
+                    // Handle left and right movement on the platform
+                    if (this.movingLeft) {
+                        this.x -= this.speed;
+                    }
+                    if (this.movingRight) {
+                        this.x += this.speed;
+                    }
+                    // Prevent Nini from moving off the platform
+                    this.x = Math.max(platform.x + this.width/2, Math.min(platform.x + platform.width - this.width/2, this.x));
+                }
+            },
+            draw() {
+                const color = this.isDrowning ? this.drownedColor : this.color;
+                const y = this.y;
+
+                ctx.save();
+                
+                // Body (more realistic chimp shape)
+                ctx.fillStyle = color;
+                ctx.beginPath();
+                ctx.ellipse(this.x, y, 18, 25, 0, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Add fur texture to body
+                ctx.strokeStyle = '#8B4513'; // Darker brown for fur details
+                ctx.lineWidth = 1;
+                for (let i = 0; i < 8; i++) {
+                    const angle = Math.PI * 2 * (i / 8);
+                    const startX = this.x + Math.cos(angle) * 15;
+                    const startY = y + Math.sin(angle) * 20;
+                    const endX = this.x + Math.cos(angle) * 22;
+                    const endY = y + Math.sin(angle) * 27;
+                    ctx.beginPath();
+                    ctx.moveTo(startX, startY);
+                    ctx.lineTo(endX, endY);
+                    ctx.stroke();
+                }
+
+                // Head
+                ctx.beginPath();
+                ctx.arc(this.x, y - 15, 15, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Face details (lighter area)
+                ctx.fillStyle = '#D2691E';
+                ctx.beginPath();
+                ctx.arc(this.x, y - 10, 8, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Eyes
+                ctx.fillStyle = '#000';
+                ctx.beginPath();
+                ctx.arc(this.x - 6, y - 18, 3, 0, Math.PI * 2);
+                ctx.arc(this.x + 6, y - 18, 3, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Eye highlights
+                ctx.fillStyle = '#FFF';
+                ctx.beginPath();
+                ctx.arc(this.x - 7, y - 19, 1, 0, Math.PI * 2);
+                ctx.arc(this.x + 5, y - 19, 1, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Nose
+                ctx.fillStyle = '#000';
+                ctx.beginPath();
+                ctx.arc(this.x, y - 10, 4, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Mouth
+                ctx.strokeStyle = '#000';
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.arc(this.x, y - 6, 5, 0.1 * Math.PI, 0.9 * Math.PI);
+                ctx.stroke();
+                
+                // Ears
+                ctx.fillStyle = color;
+                ctx.beginPath();
+                ctx.arc(this.x - 15, y - 25, 6, 0, Math.PI * 2);
+                ctx.arc(this.x + 15, y - 25, 6, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Inner ears
+                ctx.fillStyle = '#D2691E';
+                ctx.beginPath();
+                ctx.arc(this.x - 15, y - 25, 3, 0, Math.PI * 2);
+                ctx.arc(this.x + 15, y - 25, 3, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Arms (more detailed)
+                if (!this.jumping) {
+                    ctx.fillStyle = color;
+                    // Left arm
+                    ctx.beginPath();
+                    ctx.ellipse(this.x - 20, y + 5, 6, 10, -0.5, 0, Math.PI * 2);
+                    ctx.fill();
+                    // Right arm
+                    ctx.beginPath();
+                    ctx.ellipse(this.x + 20, y + 5, 6, 10, 0.5, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    // Hands
+                    ctx.fillStyle = '#D2691E';
+                    ctx.beginPath();
+                    ctx.arc(this.x - 25, y + 12, 5, 0, Math.PI * 2);
+                    ctx.arc(this.x + 25, y + 12, 5, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+                
+                // Tail (more realistic with taper)
+                const tailGradient = ctx.createLinearGradient(
+                    this.x - 10, y + 10, 
+                    this.x - 30, y + 45
+                );
+                tailGradient.addColorStop(0, color);
+                tailGradient.addColorStop(1, '#8B4513');
+                
+                ctx.strokeStyle = tailGradient;
+                ctx.lineWidth = 6;
+                ctx.lineCap = 'round';
+                ctx.beginPath();
+                ctx.moveTo(this.x - 10, y + 10);
+                ctx.quadraticCurveTo(
+                    this.x - 25, y + 25,
+                    this.x - 30, y + 45
+                );
+                ctx.stroke();
+
+                ctx.restore();
+            },
+            drown() {
+                if (!this.isDrowning) {
+                    this.isDrowning = true;
+                    this.ridingBoat = null;
+                    this.jumping = false;
+                    audio.play('splash');
+                    particleSystem.emit(this.x, water.y + 10, water.color, 50, 8);
+                }
+            },
+            reset() {
+                this.x = 100;
+                this.y = platform.y - this.height / 2;
+                this.jumping = false;
+                this.ridingBoat = null;
+                this.isDrowning = false;
+                this.velocityX = 0;
+                this.velocityY = 0;
+            },
+        };
+
+        // Starting Platform
+        const platform = {
+            x: 0,
+            y: 300,
+            width: 200,
+            height: 50,
+            draw() {
+                // Platform base
+                ctx.fillStyle = '#333';
+                ctx.fillRect(this.x, this.y, this.width, this.height);
+
+                // Platform top with a glow effect
+                ctx.fillStyle = '#666';
+                ctx.shadowBlur = 10;
+                ctx.shadowColor = '#00ffcc';
+                ctx.fillRect(this.x, this.y, this.width, 10);
+                ctx.shadowBlur = 0;
+            }
+        };
+
+        // Money object
+        class Money {
+            constructor() {
+                this.x = 0;
+                this.y = 0;
+                this.width = 25;
+                this.height = 25;
+                this.collected = false;
+            }
+
+            draw() {
+                if (this.collected) return;
+
+                ctx.save();
+                ctx.shadowBlur = 15;
+                ctx.shadowColor = '#ffcc00';
+
+                // Draw a simple glowing coin
+                ctx.fillStyle = '#ffcc00';
+                ctx.beginPath();
+                ctx.arc(this.x + this.width / 2, this.y + this.height / 2, this.width / 2, 0, Math.PI * 2);
+                ctx.fill();
+
+                ctx.fillStyle = '#000';
+                ctx.font = '16px Arial';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText('$', this.x + this.width / 2, this.y + this.height / 2);
+
+                ctx.restore();
+            }
+        }
+
+        // Banana Boat
+        class BananaBoat {
+            constructor() {
+                const spacing = 150 + Math.random() * 300;
+                const last = boats[boats.length - 1];
+                this.x = last ? last.x + last.width + spacing : canvas.width + 100;
+                this.y = 305;
+                this.width = Math.max(60, 90 - difficultyLevel * 10);
+                this.height = 30;
+                this.speed = 2 + difficultyLevel * 0.5;
+                this.color = '#FFCC00';
+                this.money = new Money();
+            }
+
+            update() {
+                this.x -= this.speed;
+                this.money.x = this.x + (this.width / 2) - (this.money.width / 2);
+                this.money.y = this.y - this.money.height - 5;
+                return this.x + this.width < 0;
+            }
+
+            draw() {
+                ctx.save();
+                ctx.translate(this.x + this.width / 2, this.y + this.height / 2);
+                ctx.rotate(0.1);
+
+                // Create banana gradient (yellow to brown tips)
+                const bananaGradient = ctx.createLinearGradient(
+                    -this.width/2, 0, 
+                    this.width/2, 0
+                );
+                bananaGradient.addColorStop(0, '#8B7500'); // Darker tip
+                bananaGradient.addColorStop(0.1, '#FFD700'); // Main yellow
+                bananaGradient.addColorStop(0.9, '#FFD700'); // Main yellow
+                bananaGradient.addColorStop(1, '#8B7500'); // Darker tip
+
+                ctx.fillStyle = bananaGradient;
+                
+                // Draw main banana body with curved shape
+                ctx.beginPath();
+                ctx.moveTo(-this.width/2, 0);
+                ctx.bezierCurveTo(
+                    -this.width/3, -this.height,
+                    this.width/3, -this.height,
+                    this.width/2, 0
+                );
+                ctx.bezierCurveTo(
+                    this.width/3, this.height,
+                    -this.width/3, this.height,
+                    -this.width/2, 0
+                );
+                ctx.closePath();
+                ctx.fill();
+                
+                // Add banana details (lines)
+                ctx.strokeStyle = '#CCAA00';
+                ctx.lineWidth = 1;
+                for (let i = 0; i < 3; i++) {
+                    const yOffset = -this.height/2 + i * this.height/2;
+                    ctx.beginPath();
+                    ctx.moveTo(-this.width/2 * 0.8, yOffset);
+                    ctx.bezierCurveTo(
+                        -this.width/3 * 0.8, yOffset - this.height/3,
+                        this.width/3 * 0.8, yOffset - this.height/3,
+                        this.width/2 * 0.8, yOffset
+                    );
+                    ctx.stroke();
+                }
+                
+                // Add highlights
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+                ctx.beginPath();
+                ctx.ellipse(-this.width/4, -this.height/3, this.width/8, this.height/4, 0, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Add shadow underneath
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+                ctx.beginPath();
+                ctx.ellipse(0, this.height/2, this.width/2.5, this.height/6, 0, 0, Math.PI * 2);
+                ctx.fill();
+
+                ctx.restore();
+                
+                // Draw the money on top
+                this.money.draw();
+            }
+
+            checkLanding() {
+                // Only allow a landing if Nini is jumping and is falling onto the boat
+                return nini.jumping &&
+                       nini.velocityY > 0 &&
+                       nini.y + nini.height >= this.y &&
+                       nini.y + nini.height <= this.y + this.height &&
+                       nini.x + nini.width > this.x &&
+                       nini.x < this.x + this.width;
+            }
+        }
+
+        // Game objects
+        let sharks = [];
+        for (let i = 0; i < 3; i++) {
+            sharks.push(new Shark(Math.random() * canvas.width));
+        }
+        let boats = [];
+        let boatTimer = 0;
+
+        // Initialize game
+        function init() {
+            score = 0;
+            jumps = 0;
+            level = 1;
+            lives = 3;
+            difficultyLevel = 0;
+            boatTimer = 0;
+            nini.reset();
+            boats = [];
+            sharks = [];
+
+            water.init(); // Initialize water FIRST. Then create sharks// Initialize water
+            for (let i = 0; i < 3; i++) {
+                sharks.push(new Shark(Math.random() * canvas.width));
+            }
+            
+            seabed = new Seabed();
+            gameRunning = true;
+            gameOverScreen.classList.add('hidden');
+            highScoreScreen.classList.add('hidden');
+            startScreen.classList.add('hidden');
+            saveScoreContainer.classList.add('hidden');
+            playerNameInput.value = '';
+            updateUI();
+            // REMOVED: audio.playBackground();
+            lastTime = 0;
+            if (animationId) cancelAnimationFrame(animationId);
+            animationId = requestAnimationFrame(gameLoop);
+        }
+
+
+        // Game loop functions should use proper function syntax
+        function gameLoop(timestamp) {
+            if (!lastTime) lastTime = timestamp;
+            const deltaTime = timestamp - lastTime;
+            lastTime = timestamp;
+
+            if (gameRunning) {
+                update(deltaTime);
+                draw(timestamp); // Pass timestamp to draw
+            }
+            animationId = requestAnimationFrame(gameLoop);
+        }
+
+
+        // Update game
+        function update(deltaTime) {
+            nini.update();
+            particleSystem.update();
+            clouds.forEach(c => c.update());
+            lightRays.forEach(ray => ray.update());
+
+            let sharkAttack = false;
+            sharks.forEach(shark => {
+                if (shark.checkAttack(nini)) {
+                    sharkAttack = true;
+                } else {
+                    shark.update();
+                }
+            });
+
+            if (sharkAttack) {
+                loseLife();
+                return;
+            }
+
+            // Check for mission completion
+            if (level >= MISSION_COMPLETED_LEVEL) {
+                missionComplete();
+                return;
+            }
+
+            // Update Seabed
+            seabed.update(deltaTime); 
+
+            // Spawn boats
+            boatTimer += deltaTime;
+            const baseInterval = 2000 - difficultyLevel * 200;
+            if (boatTimer > baseInterval && boats.length < 3) {
+                boats.push(new BananaBoat());
+                boatTimer = 0;
+            }
+
+            // Update boats and check for landing
+            for (let i = boats.length - 1; i >= 0; i--) {
+                const boat = boats[i];
+                if (boat.update()) {
+                    // Check if Nini is riding the boat that's leaving
+                    if (nini.ridingBoat === boat) {
+                        nini.reset();
+                    }
+                    boats.splice(i, 1);
+                } else if (boat.checkLanding()) {
+                    nini.ridingBoat = boat;
+                    nini.jumping = false;
+                    nini.velocityX = 0;
+                    nini.velocityY = 0;
+                    score += 100 + jumps * 10;
+
+                    // Collect money from the boat
+                    if (!boat.money.collected) {
+                        score += 50;
+                        boat.money.collected = true;
+                        particleSystem.emit(boat.money.x, boat.money.y, '#ffcc00', 10, 5);
+                    }
+
+                    jumps++;
+                    audio.play('success');
+                    particleSystem.emit(boat.x + boat.width / 2, boat.y, '#00ffcc', 30, 10);
+                    updateUI();
+
+                    // Level up every 5 jumps
+                    if (jumps % 5 === 0) {
+                        level++;
+                        lives++;
+                        difficultyLevel = Math.min(4, difficultyLevel + 1);
+                        updateUI();
+                    }
+                }
+            }
+
+            // Check drowning
+            if (water.checkDrown()) {
+                nini.drown();
+            }
+        }
+
+        // Draw everything
+        function draw(timestamp) {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            sun.draw(timestamp); // Pass timestamp to sun
+            lightRays.forEach(ray => ray.draw());
+            clouds.forEach(c => c.draw());
+            water.draw();
+            seabed.draw(timestamp); // Pass timestamp to seabed
+            platform.draw();
+            boats.forEach(b => b.draw());
+            sharks.forEach(shark => shark.draw());
+            nini.draw();
+            particleSystem.draw();
+        }
+
+        // Lose a life
+        function loseLife() {
+            lives--;
+            sharks.forEach(shark => {
+                shark.eating = false;
+                shark.mouthOpen = false;
+                shark.x = Math.random() < 0.5 ? -shark.width : canvas.width;
+                shark.y = water.y + Math.random() * (water.height - shark.height - 20) + 10;
+                shark.speed = (Math.random() * 1.5) + 1 + difficultyLevel * 0.5;
+                shark.direction = shark.x < 0 ? 1 : -1;
+            });
+            if (lives <= 0) {
+                gameOver();
+            } else {
+                nini.reset();
+                updateUI();
+            }
+        }
+
+        // High Score functions
+        function getHighScores() {
+            const scoresString = localStorage.getItem('highScores');
+            return scoresString ? JSON.parse(scoresString) : [];
+        }
+
+        function saveHighScores(scores) {
+            localStorage.setItem('highScores', JSON.stringify(scores));
+        }
+
+        function checkAndSaveScore(name, newScore) {
+            // Only save scores greater than 0
+            if (newScore <= 0) return;
+            
+            const scores = getHighScores();
+            scores.push({ name: name, score: newScore });
+            scores.sort((a, b) => b.score - a.score);
+            const top10 = scores.slice(0, 10);
+            saveHighScores(top10);
+        }
+
+        function isHighScore(newScore) {
+            // Only consider scores greater than 0 as high scores
+            if (newScore <= 0) return false;
+            
+            const scores = getHighScores();
+            if (scores.length < 10) return true;
+            return newScore > scores[scores.length - 1].score;
+        }
+
+        function displayHighScores() {
+            const scores = getHighScores();
+            highScoreList.innerHTML = '';
+            
+            // Filter out any scores that are 0 or negative (just in case)
+            const validScores = scores.filter(entry => entry.score > 0);
+            
+            if (validScores.length === 0) {
+                const li = document.createElement('li');
+                li.textContent = "No high scores yet!";
+                highScoreList.appendChild(li);
+                return;
+            }
+            
+            validScores.forEach((entry, index) => {
+                const li = document.createElement('li');
+                li.innerHTML = `<span class="score-entry">${index + 1}. <span class="high-score-name">${entry.name}</span> <span class="high-score-score">${entry.score}</span></span>`;
+                highScoreList.appendChild(li);
+            });
+        }
+
+        // Update all UI
+        function updateUI() {
+            scoreElement.textContent = score;
+            levelElement.textContent = level;
+            finalLevelElement.textContent = level;
+            finalJumpsElement.textContent = jumps;
+
+            // Lives display
+            livesCountElement.textContent = lives;
+        }
+
+        // Game over
+        function gameOver() {
+            gameRunning = false;
+            finalScoreElement.textContent = score;
+            gameOverScreen.classList.remove('hidden');
+            cancelAnimationFrame(animationId);
+            if (isHighScore(score)) {
+                saveScoreContainer.classList.remove('hidden');
+            }
+        }
+
+        // Mission complete
+        function missionComplete() {
+            gameRunning = false;
+            finalScoreElement.textContent = score;
+
+            canvas.style.display = 'none';
+            missionCompleteScreen.classList.remove('hidden');
+            cancelAnimationFrame(animationId);
+            
+            if (isHighScore(score)) {
+                saveScoreContainer.classList.remove('hidden');
+            }
+
+            // Fix: Transition to high score screen after animation
+            setTimeout(() => {
+                missionCompleteScreen.classList.add('hidden');
+                gameOver(); // Call the gameOver function to check for a high score
+            }, 60000); // 60 seconds to match animation
+        }
+
+        // Event listeners
+        startBtn.addEventListener('click', () => {
+            startScreen.classList.add('hidden');
+            init();
+        });
+
+        restartBtn.addEventListener('click', () => {
+            gameOverScreen.classList.add('hidden');
+            init();
+        });
+
+        showScoresBtn.addEventListener('click', () => {
+            startScreen.classList.add('hidden');
+            highScoreScreen.classList.remove('hidden');
+            displayHighScores();
+        });
+
+        backToMenuBtn.addEventListener('click', () => {
+            highScoreScreen.classList.add('hidden');
+            startScreen.classList.remove('hidden');
+        });
+
+        saveScoreBtn.addEventListener('click', () => {
+            const name = playerNameInput.value.trim() || "Anonymous";
+            checkAndSaveScore(name, score);
+            saveScoreContainer.classList.add('hidden');
+            displayHighScores();
+            // Show high scores screen after saving
+            gameOverScreen.classList.add('hidden');
+            highScoreScreen.classList.remove('hidden');
+        });
+
+        canvas.addEventListener('click', () => {
+            if (gameRunning) nini.jump();
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (gameRunning) {
+                if (e.code === 'Space' || e.code === 'ArrowUp') {
+                    nini.jump();
+                    e.preventDefault();
+                }
+                if (e.code === 'ArrowLeft' && !nini.jumping && !nini.ridingBoat) {
+                    nini.movingLeft = true;
+                }
+                if (e.code === 'ArrowRight' && !nini.jumping && !nini.ridingBoat) {
+                    nini.movingRight = true;
+                }
+            }
+        });
+        document.addEventListener('keyup', (e) => {
+            if (gameRunning) {
+                if (e.code === 'ArrowLeft') {
+                    nini.movingLeft = false;
+                }
+                if (e.code === 'ArrowRight') {
+                    nini.movingRight = false;
+                }
+            }
+        });
+
+        // Add these event listeners with your other event listeners
+
+        // Initialize audio on any user interaction
+        function initAudioOnInteraction() {
+            audio.initAudioContext();
+            document.removeEventListener('click', initAudioOnInteraction);
+            document.removeEventListener('keydown', initAudioOnInteraction);
+            document.removeEventListener('touchstart', initAudioOnInteraction);
+            
+            // Update the notice
+            const notice = document.getElementById('audio-permission-notice');
+            if (notice) {
+                notice.textContent = "Sound enabled!";
+                setTimeout(() => {
+                    notice.style.display = 'none';
+                }, 2000);
+            }
+        }
+
+        document.addEventListener('click', initAudioOnInteraction, { once: true });
+        document.addEventListener('keydown', initAudioOnInteraction, { once: true });
+        document.addEventListener('touchstart', initAudioOnInteraction, { once: true });
+
+        // Also initialize audio when the game starts
+        startBtn.addEventListener('click', () => {
+            audio.initAudioContext();
+            startScreen.classList.add('hidden');
+            init();
+        });
+
+        // Also initialize audio when restarting
+        restartBtn.addEventListener('click', () => {
+            audio.initAudioContext();
+            gameOverScreen.classList.add('hidden');
+            init();
+        });
+
+    </script>
+</body>
+</html>
